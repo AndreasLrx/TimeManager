@@ -18,8 +18,8 @@ defmodule TimeManager.Seeds do
 
   def seed_data do
     seed_users()
-    seed_clocks()
-    seed_working_times()
+    # seed_clocks()
+    # seed_working_times()
   end
 
   defp insert_models(models_attrs, empty_model) do
@@ -31,13 +31,45 @@ defmodule TimeManager.Seeds do
     end)
   end
 
+  defp random_bool() do
+    :rand.uniform(2) == 1
+  end
+
+  defp create_user_clock(%User{:id => id} = user) do
+    if random_bool do
+      %Clock{}
+      |> Clock.changeset(%{user_id: id, time: DateTime.utc_now(), status: random_bool})
+      |> Repo.insert()
+    end
+    user
+  end
+
+  defp create_user_working_times(%User{:id => id} = user) do
+    user
+  end
+
+  defp create_random_user do
+    with {:ok, %User{} = user} <-
+      %User{}
+      |> User.changeset(%{email: Faker.Internet.email(), username: Faker.Person.name()})
+      |> Repo.insert()
+    do
+      user
+      |> create_user_clock()
+      |> create_user_working_times()
+    end
+
+  end
+
   defp seed_users do
-    # Define your user data here
-    [
-      %{email: "user1@example.com", username: "user1"},
-      %{email: "user2@example.com", username: "user2"},
-    ]
-    |> insert_models(%User{})
+    Enum.map(1..10, fn _ -> create_random_user() end)
+
+    # # Define your user data here
+    # [
+    #   %{email: "user1@example.com", username: "user1"},
+    #   %{email: Faker.Internet.email(), username: Faker.Person.name()},
+    # ]
+    # |> insert_models(%User{})
 
   end
 
